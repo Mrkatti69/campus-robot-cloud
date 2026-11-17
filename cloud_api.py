@@ -69,5 +69,5 @@ def ask_robot(req: QueryRequest):
         ],
     )
 
-    clean_answer = chat_completion.choices.message.content.replace("*", "").replace("#", "")
+    clean_answer = chat_completion.choices[0].message.content.replace("*", "").replace("#", "")
     return {"question": req.question, "answer": clean_answer}
