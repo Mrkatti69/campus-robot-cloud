@@ -8,3 +8,4 @@ streamlit
 requests
 gTTS
 python-multipart
+audio-recorder-streamlit
