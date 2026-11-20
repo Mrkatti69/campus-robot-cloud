@@ -82,8 +82,8 @@ if 'last_query' not in st.session_state:
 # --- Sidebar: System Telemetry, Document Uploader & Audio Controls ---
 with st.sidebar:
     st.markdown("## ⚙️ Robot Control Panel")
-    st.markdown('<div class="status-badge">● ONLINE • LLAMA 3 (8B)</div>', unsafe_allow_html=True)
-    st.caption("Hardware: RTX 3050 (4GB) • 16GB RAM")
+    st.markdown('<div class="status-badge">● ONLINE • GROQ CLOUD RAG</div>', unsafe_allow_html=True)
+    st.caption("Backend: Render FastAPI + TF-IDF")
     st.write("---")
 
     voice_enabled = st.toggle("🔊 Enable Voice Response", value=True)
