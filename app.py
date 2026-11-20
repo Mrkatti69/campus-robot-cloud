@@ -3,6 +3,7 @@ import os
 import requests
 import streamlit as st
 from gtts import gTTS
+from audio_recorder_streamlit import audio_recorder
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -168,16 +169,21 @@ with layout_left:
 
 with layout_right:
     st.markdown("### 🎙️ Voice Input Node")
-    st.caption("Click below and speak clearly into your browser microphone.")
-    audio_value = st.audio_input("Record Voice Query")
-    if audio_value is not None:
-        audio_bytes = audio_value.getvalue()
+    st.caption("Click the mic once and speak—it stops automatically after 2s of silence.")
+    audio_bytes = audio_recorder(
+        text="Click & Speak",
+        recording_color="#ef4444",
+        neutral_color="#38bdf8",
+        icon_size="2x",
+        pause_threshold=2.0
+    )
+    if audio_bytes is not None:
         if st.session_state.get("last_audio_bytes") != audio_bytes:
             st.session_state["last_audio_bytes"] = audio_bytes
             with st.spinner("🎧 Transcribing voice via Groq Whisper..."):
                 try:
                     t_res = requests.post(
-                        "https://campus-robot-cloud.onrender.com/transcribe",
+                        "https://onrender.com",
                         files={"file": ("voice.wav", audio_bytes, "audio/wav")},
                         timeout=60
                     )
