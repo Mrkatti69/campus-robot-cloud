@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException , UploadFile , File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from groq import Groq
@@ -71,3 +71,18 @@ def ask_robot(req: QueryRequest):
 
     clean_answer = chat_completion.choices[0].message.content.replace("*", "").replace("#", "")
     return {"question": req.question, "answer": clean_answer}
+
+@app.post("/transcribe")
+async def transcribe_audio(file: UploadFile = File(...)):
+    api_key = os.environ.get("GROQ_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="GROQ_API_KEY is missing on Render.")
+    client = Groq(api_key=api_key)
+    audio_bytes = await file.read()
+    transcription = client.audio.transcriptions.create(
+        file=(file.filename or "audio.wav", audio_bytes),
+        model="whisper-large-v3-turbo",
+        response_format="text"
+    )
+    return {"text": transcription.strip()}
+
