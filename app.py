@@ -186,7 +186,7 @@ if student_query.strip() and (submit_query or st.session_state.get("last_query")
         with st.spinner("🤖 Reasoning through Knowledge Base via Cloud Llama 3..."):
             st.session_state["last_query"] = student_query
             res = requests.post(
-                "https://onrender.com",
+                "https://campus-robot-cloud/onrender.com/ask",
                 json={"question": student_query},
                 timeout=90
             )
