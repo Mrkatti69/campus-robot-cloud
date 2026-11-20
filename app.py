@@ -1,6 +1,8 @@
+import io
 import os
 import requests
 import streamlit as st
+from gtts import gTTS
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -113,14 +115,15 @@ st.markdown('<div class="status-badge">⚡ VECTOR RAG ACTIVE • DUAL-MODE INTER
 st.markdown("# 🤖 Interactive Campus Robot Assistant")
 st.markdown("Ask questions about campus facilities, timings, circulars, and rules using text, quick prompts, or voice.")
 st.write("---")
-
-# --- Clean Spoken Audio Engine ---
-# --- Microphone Speech-to-Text Engine ---
 def speak(text, rate=155):
-    pass
-
-def listen_to_mic():
-    return "ERROR_HARDWARE"
+    try:
+        tts = gTTS(text=text, lang="en")
+        mp3_fp = io.BytesIO()
+        tts.write_to_fp(mp3_fp)
+        mp3_fp.seek(0)
+        st.audio(mp3_fp, format="audio/mp3", autoplay=True)
+    except Exception as e:
+        st.warning(f"Audio playback skipped: {e}")
 
 # --- Main Split Interface: Text Terminal & Voice Node ---
 layout_left, layout_right = st.columns([2,1])
@@ -164,20 +167,27 @@ with layout_left:
     submit_query = st.button("🚀 Execute Vector Query Loop")
 
 with layout_right:
-    st.markdown("#### 🎙️ Voice Input Node")
-    st.caption("Click below and speak clearly into your microphone.")
-    if st.button("🔴 Click & Speak Now"):
-        with st.spinner("🎧 Listening..."):
-            audio_text = listen_to_mic()
-            if audio_text == "ERROR_TIMEOUT":
-                st.toast("⚠️ No speech detected. Please speak sooner.", icon="⏳")
-            elif audio_text == "ERROR_UNRECOGNIZED":
-                st.toast("⚠️ Could not understand audio. Try again.", icon="❌")
-            elif audio_text == "ERROR_HARDWARE":
-                st.toast("⚠️ Microphone or network error.", icon="🎤")
-            else:
-                st.session_state['voice_input'] = audio_text
-                st.rerun()
+    st.markdown("### 🎙️ Voice Input Node")
+    st.caption("Click below and speak clearly into your browser microphone.")
+    audio_value = st.audio_input("Record Voice Query")
+    if audio_value is not None:
+        audio_bytes = audio_value.getvalue()
+        if st.session_state.get("last_audio_bytes") != audio_bytes:
+            st.session_state["last_audio_bytes"] = audio_bytes
+            with st.spinner("🎧 Transcribing voice via Groq Whisper..."):
+                try:
+                    t_res = requests.post(
+                        "https://onrender.com",
+                        files={"file": ("voice.wav", audio_bytes, "audio/wav")},
+                        timeout=60
+                    )
+                    t_res.raise_for_status()
+                    spoken_text = t_res.json().get("text", "")
+                    if spoken_text:
+                        st.session_state["voice_input"] = spoken_text
+                        st.rerun()
+                except Exception as e:
+                    st.error(f"Voice transcription error: {e}")
 
 # --- Query Execution & Response Rendering ---
 if student_query.strip() and (submit_query or st.session_state.get("last_query") != student_query):
