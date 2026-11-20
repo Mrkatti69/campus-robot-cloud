@@ -183,7 +183,7 @@ with layout_right:
             with st.spinner("🎧 Transcribing voice via Groq Whisper..."):
                 try:
                     t_res = requests.post(
-                        "https://onrender.com",
+                        "https://campus-robot-cloud.onrender.com/transcribe",
                         files={"file": ("voice.wav", audio_bytes, "audio/wav")},
                         timeout=60
                     )
